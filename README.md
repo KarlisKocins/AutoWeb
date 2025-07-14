@@ -2,20 +2,29 @@
 
 ## 📖 Projekta Apraksts
 
-AutoWeb ir auto remonta darbnīcas pārvaldības sistēmas prototips, kas izstrādāts izmantojot Next.js priekšgala lietojumprogrammu. Sistēma nodrošina informatīvu mājaslapu ar rezervāciju iespējām un administratīvo paneli.
+AutoWeb ir auto remonta darbnīcas pārvaldības sistēmas prototips, kas izstrādāts ar Next.js. Sistēma nodrošina informatīvu mājaslapu, rezervāciju iespējas, pakalpojumu pārskatu un administratīvo paneli ar darba grafika plānošanu.
 
 ## 🗂️ Projekta Struktūra
 
-- **`autoweb/`**: Satur Next.js priekšgala lietojumprogrammu
+- **`autoweb/`**: Satur Next.js lietojumprogrammu
   - **`app/`**: Galvenā lietojumprogrammas direktorija
-    - **`components/`**: Atkārtoti izmantojamie komponenti
+    - **`components/`**: Atkārtoti izmantojami React komponenti (Booking, Calendar, Navbar, Footer, LoginPopup, RegisterPopup, Expert-card, PendingAppointment)
     - **`api/`**: API maršruti un datubāzes konfigurācija
-    - **`context/`**: React konteksta faili
-  - **`public/`**: Statiskie faili
+      - **`appointments/`**: Rezervāciju API (approved, book, list, times, update_status)
+      - **`services/`**: Pakalpojumu API
+      - **`users/`**: Lietotāju reģistrācijas un pieteikšanās API
+      - **`autoserviss.sql`**: Datubāzes shēma un sākotnējie dati
+      - **`db.js`**: Datubāzes savienojuma konfigurācija
+    - **`context/`**: React konteksta faili (piem., AuthContext)
+    - **`admin/`**: Administrācijas panelis un darba grafika plānošana (`weekly-schedule`)
+    - **`pakalpojumi/`**: Pakalpojumu lapa
+    - **`par-mums/`**: Par mums lapa
+    - **`globals.css`**: Globālie stili
+    - **`layout.js`**: Galvenais izkārtojums
+    - **`page.js`**: Mājaslapa
+  - **`public/`**: Statiskie faili (attēli, SVG)
 
 ## 📦 Priekšnosacījumi
-
-Pirms projekta iestatīšanas, pārliecinieties, ka jūsu sistēmā ir instalēti:
 
 - **Node.js** (v14 vai jaunāka)
 - **npm** (v6 vai jaunāka)
@@ -24,32 +33,32 @@ Pirms projekta iestatīšanas, pārliecinieties, ka jūsu sistēmā ir instalēt
 
 ## ⚙️ Projekta Iestatīšana
 
-1. **Klonējiet repozitoriju:**
+1. **Klonējiet savu forku:**
    ```bash
-   git clone [repo-url]
+   git clone https://github.com/<jūsu-lietotājvārds>/<repo-nosaukums>.git
    ```
 
 2. **Pārejiet uz projekta direktoriju:**
    ```bash
-   cd autoweb
+   cd Programmaturas-izstr/autoweb
    ```
 
-3. **Instalējiet nepieciešamās atkarības:**
+3. **Instalējiet atkarības:**
    ```bash
    npm install
    ```
 
-4. **Izveidojiet .env failu ar sekojošām vērtībām:**
+4. **Izveidojiet `.env` failu ar šādām vērtībām:**
    ```
    DB_HOST=localhost
    DB_USER=your_username
    DB_PASSWORD=your_password
-   DB_DATABASE=autoserviss
+   DB_NAME=AutoWeb
    DB_PORT=5432
    ```
 
 5. **Inicializējiet datubāzi:**
-   - Izmantojiet SQL skriptu no `app/api/autoserviss.sql`
+   - Izpildiet SQL skriptu no `app/api/autoserviss.sql` savā PostgreSQL datubāzē.
 
 ## 🚀 Lietojumprogrammas Palaišana
 
@@ -61,49 +70,70 @@ Pirms projekta iestatīšanas, pārliecinieties, ka jūsu sistēmā ir instalēt
 2. **Atveriet pārlūkprogrammu un apmeklējiet:**
    [http://localhost:3000](http://localhost:3000)
 
-## 🔑 Pašreizējās Funkcijas
+## 🔑 Funkcijas
 
 - Informatīva mājaslapa
-- Kalendāra komponente
-- Responsīvs dizains
+- Kalendāra komponente rezervācijām
+- Pakalpojumu pārskats
 - Ekspertu sekcija
 - Par mums sekcija
-- Lietotāju autentifikācija
-- Administratora panelis
+- Lietotāju reģistrācija un pieteikšanās (autentifikācija ar bcryptjs)
+- Administratora panelis ar rezervāciju pārskatu un darba grafika plānošanu (`weekly-schedule`)
 - Pakalpojumu pārvaldība
-- Rezervāciju sistēma
+- Rezervāciju sistēma ar laika izvēli
+- Responsīvs dizains
 
 ## 🛠️ Tehnoloģiju Steks
 
-- **Priekšgals**: Next.js, React, CSS Modules
+- **Priekšgals**: Next.js (v15), React (v19), CSS Modules
 - **Ikonas**: React Icons
 - **Datubāze**: PostgreSQL
 - **Autentifikācija**: bcryptjs
-- **API**: Next.js API Routes
+- **API**: Next.js API Routes, pg
+
+## 📁 Galvenie Komponenti
+
+- `Booking.js` — Rezervāciju forma un laika izvēle
+- `Calendar.js` — Kalendāra komponente
+- `Navbar.js`, `Footer.js` — Navigācija un kājene
+- `LoginPopup.js`, `RegisterPopup.js` — Lietotāju autentifikācijas logi
+- `Expert-card.js` — Ekspertu informācijas karte
+- `PendingAppointment.js` — Nepabeigtās rezervācijas
+
+## 🗂️ API Maršruti
+
+- `/api/appointments/approved` — Apstiprināto rezervāciju saraksts
+- `/api/appointments/book` — Jaunas rezervācijas izveide
+- `/api/appointments/list` — Visu rezervāciju saraksts
+- `/api/appointments/times` — Pieejamie laiki
+- `/api/appointments/update_status` — Rezervācijas statusa atjaunināšana
+- `/api/services` — Pakalpojumu saraksts
+- `/api/users/register` — Lietotāja reģistrācija
+- `/api/users/login` — Lietotāja pieteikšanās
 
 ## 🔐 Autentifikācija
 
-Sistēma nodrošina:
-- Lietotāju reģistrāciju
-- Pieteikšanos
-- Administratora piekļuvi
-- Sesiju pārvaldību
+- Lietotāju reģistrācija un pieteikšanās
+- Administratora piekļuve
+- Sesiju pārvaldība ar React kontekstu
 
 ## 👨‍💼 Administratora Panelis
 
-Administratora panelī pieejams:
-- Darbinieku pārvaldība
+- Darbinieku pārvaldība (nākotnē)
 - Rezervāciju pārskats
-- Darba grafika plānošana
+- Darba grafika plānošana (`weekly-schedule`)
+
+## 🖼️ Statiskie Resursi
+
+- Attēli: `public/team1.png`, `public/team2.png`, `public/team3.png`, `public/workshop.png`, `public/cars.jpg`
+- SVG ikonas: `public/file.svg`, `public/globe.svg`, `public/next.svg`, `public/vercel.svg`, `public/window.svg`
 
 ## 🐞 Problēmu Novēršana
 
-Ja sastopaties ar problēmām projekta iestatīšanas vai darbības laikā:
-
-1. Pārliecinieties, ka visas atkarības ir pareizi instalētas `autoweb` direktorijā
+1. Pārliecinieties, ka visas atkarības ir instalētas `autoweb` direktorijā
 2. Pārbaudiet, vai ports 3000 nav aizņemts ar citu lietojumprogrammu
 3. Pārbaudiet konsoles izvadi, lai iegūtu detalizētu informāciju par kļūdām
-4. Pārliecinieties, ka datubāzes konfigurācija .env failā ir pareiza
+4. Pārliecinieties, ka datubāzes konfigurācija `.env` failā ir pareiza
 
 ## 📬 Kontaktinformācija
 
