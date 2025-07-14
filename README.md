@@ -35,12 +35,12 @@ AutoWeb ir auto remonta darbnīcas pārvaldības sistēmas prototips, kas izstr�
 
 1. **Klonējiet savu forku:**
    ```bash
-   git clone https://github.com/<jūsu-lietotājvārds>/<repo-nosaukums>.git
+   git clone <REPO URL>
    ```
 
 2. **Pārejiet uz projekta direktoriju:**
    ```bash
-   cd Programmaturas-izstr/autoweb
+   cd AutoWeb/autoweb-files
    ```
 
 3. **Instalējiet atkarības:**

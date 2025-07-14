@@ -16,11 +16,11 @@ export async function GET(req) {
             );
         }
 
-        // Query - removed the dangling AND from the SQL query
+        // Query - only block times for pending or approved appointments
         const result = await pool.query(
             `SELECT appointment_time 
              FROM appointments 
-             WHERE appointment_date = $1`,
+             WHERE appointment_date = $1 AND status IN ('pending', 'approved')`,
             [date]
         );
 
