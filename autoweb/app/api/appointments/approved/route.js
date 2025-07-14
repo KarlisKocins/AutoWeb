@@ -15,8 +15,8 @@ export async function GET() {
             FROM appointments a
             JOIN user_profiles u ON a.client_id = u.id
             JOIN cars c ON a.car_id = c.id
-            JOIN services s ON a.service_id = s.id
-            WHERE a.status = 'approved'
+            LEFT JOIN services s ON a.service_id = s.id
+            WHERE a.status IN ('approved', 'completed')
             ORDER BY a.appointment_date ASC, a.appointment_time ASC
             LIMIT 10`
         );

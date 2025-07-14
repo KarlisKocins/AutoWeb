@@ -23,6 +23,16 @@ CREATE TABLE services (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Populate services table with Latvian data
+INSERT INTO services (name, category, description, price_low, price_high)
+VALUES
+('Eļļas maiņa', 'Apkope', 'Motoreļļas un filtra nomaiņa', 20.00, 40.00),
+('Bremžu sistēmas pārbaude', 'Diagnostika', 'Bremžu kluču, disku un šķidruma pārbaude', 15.00, 35.00),
+('Riepu maiņa', 'Riepas', 'Riepu nomaiņa un balansēšana', 10.00, 30.00),
+('Dzinēja diagnostika', 'Diagnostika', 'Dzinēja elektronikas pārbaude ar datoru', 25.00, 60.00),
+('Gaisa filtra maiņa', 'Apkope', 'Gaisa filtra nomaiņa', 5.00, 15.00),
+('Aizmugurējo lukturu remonts', 'Elektrība', 'Aizmugurējo lukturu remonts vai nomaiņa', 10.00, 25.00);
+
 
 CREATE TABLE cars (
     id SERIAL PRIMARY KEY,

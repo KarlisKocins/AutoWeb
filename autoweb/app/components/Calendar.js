@@ -21,6 +21,9 @@ export default function Calendar({ onDateSelect }) {
 
   const weekDays = ["P", "O", "T", "C", "P", "S", "Sv"];
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set time to beginning of day for accurate comparison
+
   const [currentMonthIndex, setCurrentMonthIndex] = useState(
     new Date().getMonth()
   );
@@ -40,6 +43,20 @@ export default function Calendar({ onDateSelect }) {
     const date = new Date(currentYear, currentMonthIndex, dayNumber);
     const day = date.getDay();
     return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+  };
+
+  const isToday = (dayNumber) => {
+    if (dayNumber <= 0) return false;
+    const date = new Date(currentYear, currentMonthIndex, dayNumber);
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() && 
+           date.getFullYear() === today.getFullYear();
+  };
+
+  const isPastDate = (dayNumber) => {
+    if (dayNumber <= 0) return false;
+    const date = new Date(currentYear, currentMonthIndex, dayNumber);
+    return date < today;
   };
 
   const handlePrevMonth = () => {
@@ -62,6 +79,16 @@ export default function Calendar({ onDateSelect }) {
     });
   };
 
+  // Disable previous month button if it would navigate to a past month
+  const isPrevMonthDisabled = () => {
+    const prevMonth = currentMonthIndex === 0 
+      ? { month: 11, year: currentYear - 1 }
+      : { month: currentMonthIndex - 1, year: currentYear };
+    
+    return (prevMonth.year < today.getFullYear()) || 
+           (prevMonth.year === today.getFullYear() && prevMonth.month < today.getMonth());
+  };
+
   const daysInMonth = getDaysInMonth(currentMonthIndex, currentYear);
   const firstDayOfMonth = getFirstDayOfMonth(currentMonthIndex, currentYear);
   const totalDays = firstDayOfMonth + daysInMonth;
@@ -70,7 +97,12 @@ export default function Calendar({ onDateSelect }) {
   return (
     <div className="calendar">
       <div className="calendar-header">
-        <button className="calendar-nav" onClick={handlePrevMonth}>
+        <button 
+          className="calendar-nav" 
+          onClick={handlePrevMonth}
+          disabled={isPrevMonthDisabled()}
+          style={{ opacity: isPrevMonthDisabled() ? 0.5 : 1, cursor: isPrevMonthDisabled() ? 'not-allowed' : 'pointer' }}
+        >
           <IoChevronBack />
         </button>
         <h3>
@@ -92,18 +124,29 @@ export default function Calendar({ onDateSelect }) {
           const dayNumber = i - firstDayOfMonth + 1;
           const isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
           const isWeekendDay = isWeekend(dayNumber);
+          const isTodayDate = isToday(dayNumber);
+          const isPastDateDay = isPastDate(dayNumber);
+          const isDisabled = !isValidDay || isWeekendDay || isPastDateDay;
 
           return (
             <button
               key={i}
               className={`calendar-day ${
                 !isValidDay ? "calendar-day-disabled" : ""
-              } ${isWeekendDay ? "calendar-day-weekend" : ""}`}
-              disabled={!isValidDay || isWeekendDay}
+              } ${isWeekendDay ? "calendar-day-weekend" : ""} ${
+                isPastDateDay && isValidDay ? "calendar-day-past" : ""
+              } ${isTodayDate ? "calendar-day-today" : ""}`}
+              disabled={isDisabled && !isTodayDate}
               onClick={() => {
-                if (isValidDay && !isWeekendDay) {
-                  const selectedDate = new Date(currentYear, currentMonthIndex, dayNumber);
-                  onDateSelect(selectedDate);
+                if (isValidDay) {
+                  if (isTodayDate) {
+                    // Pass today's date with isToday flag
+                    const selectedDate = new Date(currentYear, currentMonthIndex, dayNumber);
+                    onDateSelect(selectedDate, true);
+                  } else if (!isDisabled) {
+                    const selectedDate = new Date(currentYear, currentMonthIndex, dayNumber);
+                    onDateSelect(selectedDate, false);
+                  }
                 }
               }}
             >

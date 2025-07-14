@@ -1,19 +1,16 @@
 "use client";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
-import PendingAppointment from "../components/PendingAppointment";
+import Navbar from "../../components/Navbar";
 import Link from "next/link";
 
-const AdminPage = () => {
+const WeeklySchedulePage = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const [pendingAppointments, setPendingAppointments] = useState([]);
   const [approvedAppointments, setApprovedAppointments] = useState([]);
-  const [pendingData, setPendingData] = useState();
-  const [isPendingOpen, setIsPendingOpen] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(getStartOfWeek(new Date()));
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [actionAppointment, setActionAppointment] = useState(null);
@@ -80,7 +77,7 @@ const AdminPage = () => {
       friday: []
     };
     
-    // Initialize nested arrays for each time slot
+    // Initialize nested arrays for each time slot (9:00-18:00)
     for (const day in weekAppointments) {
       weekAppointments[day] = Array(10).fill().map(() => []);
     }
@@ -92,7 +89,7 @@ const AdminPage = () => {
         const dayOfWeek = appointmentDate.getDay(); // 1 for Monday, 2 for Tuesday, etc.
         const timeSlot = getTimeSlotIndex(appointment.time);
         
-        if (timeSlot >= 0 && dayOfWeek >= 1 && dayOfWeek <= 5) {
+        if (timeSlot >= 0 && timeSlot < 10 && dayOfWeek >= 1 && dayOfWeek <= 5) {
           const dayName = getDayName(dayOfWeek);
           weekAppointments[dayName][timeSlot].push(appointment);
         }
@@ -102,10 +99,10 @@ const AdminPage = () => {
     return weekAppointments;
   }
 
-  // Get the time slot index (0 for 8:00, 1 for 9:00, etc.)
+  // Get the time slot index (0 for 9:00, 1 for 10:00, etc.)
   function getTimeSlotIndex(timeString) {
     const hour = parseInt(timeString.split(':')[0]);
-    return hour - 8; // 8:00 is index 0
+    return hour - 9; // 9:00 is index 0
   }
 
   // Get day name from day index
@@ -114,18 +111,10 @@ const AdminPage = () => {
     return days[dayIndex];
   }
 
-  // First useEffect for fetching appointments
+  // useEffect for fetching appointments
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        // Fetch pending appointments
-        const pendingRes = await fetch('/api/appointments/list');
-        if (!pendingRes.ok) {
-          throw new Error('Failed to fetch pending appointments');
-        }
-        const pendingData = await pendingRes.json();
-        setPendingAppointments(pendingData);
-
         // Fetch approved appointments (including completed ones)
         const approvedRes = await fetch('/api/appointments/approved');
         if (!approvedRes.ok) {
@@ -135,7 +124,6 @@ const AdminPage = () => {
         setApprovedAppointments(approvedData);
       } catch (err) {
         console.error('Error fetching appointments:', err.message);
-        // Optionally set some error state here if you want to show error messages to users
       }
     };
 
@@ -162,7 +150,11 @@ const AdminPage = () => {
 
       // Update the appointments list after successful status update
       setApprovedAppointments(prev => 
-        prev.filter(appointment => appointment.id !== appointmentId)
+        prev.map(appointment => 
+          appointment.id === appointmentId 
+            ? { ...appointment, status: status }
+            : appointment
+        )
       );
 
     } catch (error) {
@@ -171,7 +163,7 @@ const AdminPage = () => {
     }
   };
 
-  // Second useEffect for auth check (moved after other hooks)
+  // Second useEffect for auth check
   useEffect(() => {
     if (!user || user.role !== 'admin') {
       router.push('/'); // Redirect to home page if not admin
@@ -182,35 +174,6 @@ const AdminPage = () => {
   if (!user || user.role !== 'admin') {
     return null;
   }
-
-  const togglePendingPopup = () => {
-    setIsPendingOpen(!isPendingOpen);
-  };
-
-  const handlePendingClick = (data) => {
-    setPendingData(data);
-    togglePendingPopup();
-  }
-
-  const onStatusUpdate = (updatedAppointment) => {
-    console.log(updatedAppointment);
-    console.log(pendingAppointments);
-
-    const newAppointmentList = pendingAppointments.filter(
-      (appointment) => appointment.id !== updatedAppointment.id
-    );
-
-    console.log(newAppointmentList);
-    setPendingAppointments(newAppointmentList);
-  }
-
-  const employees = [
-    { id: 1, name: "Vārds Uzvārds" },
-    { id: 2, name: "Vārds Uzvārds" },
-    { id: 3, name: "Vārds Uzvārds" },
-    { id: 4, name: "Vārds Uzvārds" },
-    { id: 5, name: "Vārds Uzvārds" },
-  ];
 
   // Handle edit appointment button click
   const handleEditAppointment = (appointment) => {
@@ -267,137 +230,194 @@ const AdminPage = () => {
     setActionAppointment(null);
   };
 
-  // Function to check if a row is empty (no appointments in this time slot)
-  function checkEmptyRow(weekAppointments, timeIndex) {
-    let isEmpty = true;
-    ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
-      const appointmentsInSlot = weekAppointments[day][timeIndex];
-      if (Array.isArray(appointmentsInSlot) && appointmentsInSlot.length > 0) {
-        isEmpty = false;
-      }
-    });
-    return isEmpty;
-  }
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  // Calculate current time position for the time indicator
+  const getCurrentTimePosition = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    
+    // If current time is outside work hours (9:00-18:00), return null
+    if (hours < 9 || hours >= 18) {
+      return null;
+    }
+    
+    // Position as percentage within the cell (0-100%)
+    return (minutes / 60) * 100;
+  };
+
+  // Get current hour index (0 = 9:00, 1 = 10:00, etc.)
+  const getCurrentHourIndex = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    
+    if (hours < 9 || hours >= 18) {
+      return null;
+    }
+    
+    return hours - 9;
+  };
+  
+  // Get the current day name (monday, tuesday, etc.)
+  const getCurrentDayName = () => {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // If weekend, return null
+    if (day === 0 || day === 6) {
+      return null;
+    }
+    
+    return getDayName(day);
+  };
+  
+  // Check if the current day is in the displayed week
+  const isCurrentDayInWeek = () => {
+    const now = new Date();
+    const currentStartOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(currentWeekStart);
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(currentWeekStart.getDate() + 4); // Friday
+    weekEnd.setHours(23, 59, 59, 999); // End of Friday
+    
+    return currentStartOfDay >= weekStart && currentStartOfDay <= weekEnd;
+  };
 
   return (
     <>
-      <Navbar/>
-
+      <Navbar />
+      
       <div className="admin-container">
         <div className="admin-main-content">
-          <div className="admin-left-panel">
-            <div className="admin-card">
-              <h3>Darbinieku saraksts</h3>
-              <div className="admin-scrollable">
-                {employees.map((employee) => (
-                  <div key={employee.id} className="admin-list-item">
-                    <span className="admin-name">{employee.name}</span>
-                    <a href="#" className="admin-report-link">
-                      pārskats
-                    </a>
-                  </div>
-                ))}
-              </div>
-              <div className="admin-add-button">Pievienot jauno darbinieku +</div>
-            </div>
-          </div>
-
-          <div className="admin-right-panel">
-            <div className="admin-card">
-              <h3>Pieteikumi</h3>
-              <div className="admin-scrollable">
-                {pendingAppointments.map((item) => (
-                  <div key={item.id} className="admin-list-item">
-                    <span className="admin-name">{item.name}</span>
-                    <div className="admin-details">
-                      <div className="detail-row">
-                        <span className="detail-label">Auto:</span>
-                        <span className="detail-value">{item.license_plate || 'Nav norādīts'}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="detail-label">Pakalpojums:</span>
-                        <span className="detail-value">{item.service_name || 'Cits'}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="detail-label">Laiks:</span>
-                        <span className="detail-value">{item.time}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="detail-label">Datums:</span>
-                        <span className="detail-value">{item.date}</span>
-                      </div>
-                    </div>
-                    <a href="#" className="admin-report-link" onClick={() => handlePendingClick(item)}>
-                      pārskats
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="admin-card">
-              <h3>Grafiks</h3>
-              <div className="admin-scrollable">
-                {approvedAppointments.map((appointment) => (
-                  <div key={appointment.id} className="admin-list-item">
-                    <div className="appointment-info">
-                      <div className="name-phone-container">
-                        <span className="admin-name">{appointment.name}</span>
-                        <span className="admin-phone">• {appointment.phone}</span>
-                      </div>
-                      <span className="admin-details">
-                        {appointment.service_name || 'Cits'} - {appointment.license_plate}
-                      </span>
-                      <span className="appointment-time">
-                        {appointment.date}, {appointment.time}
-                      </span>
-                    </div>
-                    <div className="appointment-actions">
-                      <button 
-                        className="btn-finish"
-                        onClick={() => handleAppointmentAction(appointment.id, 'completed')}
-                      >
-                        Pabeigt
-                      </button>
-                      <button 
-                        className="btn-cancel"
-                        onClick={() => handleAppointmentAction(appointment.id, 'cancelled')}
-                      >
-                        Atcelt
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {approvedAppointments.length === 0 && (
-                  <div className="no-appointments">
-                    Nav apstiprinātu rezervāciju
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="admin-card">
-              <h3>Nedēļas Grafiks</h3>
-              <Link href="/admin/weekly-schedule" className="weekly-schedule-link">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
+          <div className="admin-card" style={{ width: "100%" }}>
+            <div className="admin-back-link">
+              <Link href="/admin">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Atvērt nedēļas grafiku
+                Atpakaļ uz administrācijas paneli
               </Link>
+            </div>
+            <h3>Nedēļas Grafiks</h3>
+            <div className="week-calendar">
+              <div className="week-nav">
+                <button className="week-nav-btn" onClick={goToPreviousWeek}>« Iepriekšējā nedēļa</button>
+                <h4>{formatDateRange(currentWeekStart)}</h4>
+                <button className="week-nav-btn" onClick={goToNextWeek}>Nākamā nedēļa »</button>
+              </div>
+              
+              <div className="week-grid">
+                <div className="time-column">
+                  <div className="time-header">Laiks</div>
+                  {Array(10).fill().map((_, timeIndex) => {
+                    return (
+                      <div 
+                        className="time-cell" 
+                        key={timeIndex}
+                      >
+                        {9 + timeIndex}:00
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].map((day, dayIndex) => {
+                  const dayNames = ['Pirmdiena', 'Otrdiena', 'Trešdiena', 'Ceturtdiena', 'Piektdiena'];
+                  const weekAppointments = getAppointmentsForWeek(approvedAppointments, currentWeekStart);
+                  
+                  return (
+                    <div className="day-column" key={day}>
+                      <div className="day-header">{dayNames[dayIndex]}</div>
+                      {Array(10).fill().map((_, timeIndex) => {
+                        const appointmentsInSlot = weekAppointments[day][timeIndex];
+                        const hasAppointments = Array.isArray(appointmentsInSlot) && appointmentsInSlot.length > 0;
+                        const isCurrentTimeCell = isCurrentDayInWeek() && 
+                                                day === getCurrentDayName() && 
+                                                timeIndex === getCurrentHourIndex();
+                        
+                        return (
+                          <div 
+                            className="appointment-cell" 
+                            key={timeIndex}
+                          >
+                            {hasAppointments && appointmentsInSlot.map((appointment, i) => (
+                              <div 
+                                className={`appointment-card ${appointment.status === 'completed' ? 'completed-appointment' : ''}`} 
+                                key={appointment.id}
+                              >
+                                <div className="appointment-name">{appointment.name}</div>
+                                <div className="appointment-details">
+                                  {appointment.license_plate} - {appointment.service_name || 'Cits'}
+                                </div>
+                                {appointment.status !== 'completed' ? (
+                                  <>
+                                    <div className="appointment-actions">
+                                      <button 
+                                        className="btn-edit"
+                                        onClick={() => handleEditAppointment(appointment)}
+                                      >
+                                        Rediģēt
+                                      </button>
+                                      <button 
+                                        className="btn-finish"
+                                        onClick={() => handleAppointmentAction(appointment.id, 'completed')}
+                                      >
+                                        Pabeigt
+                                      </button>
+                                      <button 
+                                        className="btn-cancel"
+                                        onClick={() => handleAppointmentAction(appointment.id, 'cancelled')}
+                                      >
+                                        Atcelt
+                                      </button>
+                                    </div>
+                                    <button 
+                                      className="single-action-btn"
+                                      onClick={() => handleActionClick(appointment)}
+                                    >
+                                      Darbības
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="completed-label">Pabeigts</div>
+                                )}
+                              </div>
+                            ))}
+                            {/* Display current time indicator */}
+                            {isCurrentTimeCell && (
+                              <div 
+                                className="current-time-indicator" 
+                                style={{ 
+                                  top: `${getCurrentTimePosition()}%`,
+                                }}
+                              >
+                                <div className="current-time-dot"></div>
+                                <div className="current-time-line"></div>
+                                <div className="current-time-label">
+                                  {currentTime.getHours()}:{currentTime.getMinutes() < 10 ? '0' + currentTime.getMinutes() : currentTime.getMinutes()}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <PendingAppointment
-        appointmentData={pendingData}
-        isOpen={isPendingOpen} 
-        onClose={togglePendingPopup}
-        onStatusUpdate={onStatusUpdate}
-      />
 
       {/* Edit Appointment Modal */}
       {isEditModalOpen && editingAppointment && (
@@ -541,4 +561,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default WeeklySchedulePage; 

@@ -71,60 +71,55 @@ export default function RegisterPopup({ isOpen, onClose }) {
         </button>
         <h2 className="popup-title">Izveidot profilu</h2>
         <p className="popup-subtitle">Lūdzu, aizpildiet reģistrācijas formu</p>
-        {error && <p className="error-message" style={{color: 'red', textAlign: 'center'}}>
+        {error && <p className="error-message">
           {error === 'Username already exists' ? 'Lietotājvārds jau eksistē' : error}
         </p>}
         <form className="popup-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Lietotājvārds</label>
             <input 
               type="text" 
               id="username" 
-              placeholder="Ievadiet lietotājvārdu" 
+              placeholder="Lietotājvārds" 
               required 
               value={formData.username}
               onChange={handleChange}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="name">Vārds, Uzvārds</label>
             <input 
               type="text" 
               id="name" 
-              placeholder="Ievadiet vārdu un uzvārdu" 
+              placeholder="Vārds, Uzvārds" 
               required 
               value={formData.name}
               onChange={handleChange}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Parole</label>
             <input 
               type="password" 
               id="password" 
-              placeholder="Ievadiet paroli" 
+              placeholder="Parole" 
               required 
               value={formData.password}
               onChange={handleChange}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="rePassword">Atkārtoti parole</label>
             <input 
               type="password" 
               id="rePassword" 
-              placeholder="Atkārtoti ievadiet paroli" 
+              placeholder="Atkārtoti parole" 
               required 
               value={formData.rePassword}
               onChange={handleChange}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="phone">Telefona numurs</label>
             <input 
               type="tel" 
               id="phone" 
-              placeholder="Ievadiet telefona numuru" 
+              placeholder="Telefona numurs" 
               required 
               value={formData.phone}
               onChange={handleChange}

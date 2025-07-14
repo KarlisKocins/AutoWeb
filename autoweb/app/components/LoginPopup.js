@@ -56,27 +56,25 @@ export default function LoginPopup({ isOpen, onClose, onCreateAccountClick }) {
         </button>
         <h2 className="popup-title">Laipni lūdzam atpakaļ!</h2>
         <p className="popup-subtitle">Lūdzu, piesakieties savā kontā</p>
-        {error && <p className="error-message" style={{color: 'red', textAlign: 'center'}}>
+        {error && <p className="error-message">
           {error === 'Login failed' ? 'Pieteikšanās neizdevās' : error}
         </p>}
         <form className="popup-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Lietotājvārds</label>
             <input 
               type="text" 
               id="username" 
-              placeholder="Ievadiet lietotājvārdu" 
+              placeholder="Lietotājvārds" 
               required 
               value={formData.username}
               onChange={handleChange}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Parole</label>
             <input 
               type="password" 
               id="password" 
-              placeholder="Ievadiet savu paroli" 
+              placeholder="Parole" 
               required 
               value={formData.password}
               onChange={handleChange}
@@ -88,7 +86,7 @@ export default function LoginPopup({ isOpen, onClose, onCreateAccountClick }) {
         </form>
         <p className="popup-footer">
           Nav profila?{" "}
-          <button className="link-button" onClick={onCreateAccountClick}>
+          <button className="create-account-btn" onClick={onCreateAccountClick}>
             Izveidot profilu
           </button>
         </p>

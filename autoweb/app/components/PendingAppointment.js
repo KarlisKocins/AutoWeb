@@ -51,10 +51,10 @@ export default function PendingAppointment({ appointmentData, isOpen, onClose, o
 
         <div className="appointment-actions">
           <button className="accept-button" onClick={() => handleClick("approved")}>
-            Accept
+            Apstiprināt
           </button>
           <button className="deny-button" onClick={() => handleClick("denied")}>
-            Deny
+            Noraidīt
           </button>
         </div>
       </div>

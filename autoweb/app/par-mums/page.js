@@ -32,7 +32,7 @@ export default function ParMums() {
             </div>
             <div className="story-image">
               <img
-                src="/workshop.jpg"
+                src="/workshop.png"
                 alt="AutoWeb darbnīca"
                 className="about-img"
               />
@@ -78,21 +78,27 @@ export default function ParMums() {
           <h2>Mūsu komanda</h2>
           <div className="team-grid">
             <div className="team-member">
-              <img src="/team1.jpg" alt="Jānis Bērziņš" className="team-img" />
+              <div className="team-img-container">
+                <img src="/team1.png" alt="Jānis Bērziņš" className="team-img" />
+              </div>
               <h3>Jānis Bērziņš</h3>
               <p>Galvenais mehāniķis</p>
             </div>
             <div className="team-member">
-              <img
-                src="/team2.jpg"
-                alt="Pēteris Kalniņš"
-                className="team-img"
-              />
+              <div className="team-img-container">
+                <img
+                  src="/team2.png"
+                  alt="Pēteris Kalniņš"
+                  className="team-img"
+                />
+              </div>
               <h3>Pēteris Kalniņš</h3>
               <p>Diagnostikas speciālists</p>
             </div>
             <div className="team-member">
-              <img src="/team3.jpg" alt="Anna Kļaviņa" className="team-img" />
+              <div className="team-img-container">
+                <img src="/team3.png" alt="Anna Kļaviņa" className="team-img" />
+              </div>
               <h3>Anna Kļaviņa</h3>
               <p>Klientu apkalpošanas vadītāja</p>
             </div>

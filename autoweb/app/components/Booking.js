@@ -9,6 +9,7 @@ export default function BookingComponent({ selectedDate }) {
   const [selectedTime, setSelectedTime] = useState(null);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [isTodaySelected, setIsTodaySelected] = useState(false);
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [customService, setCustomService] = useState('');
@@ -39,25 +40,43 @@ export default function BookingComponent({ selectedDate }) {
   }, []);
 
   useEffect(() => {
-    if (selectedDate && !user) {
-      setShowLoginPopup(true);
-      return;
-    }
-
-    if (selectedDate && user) {
-      const adjustedDate = new Date(selectedDate);
-      adjustedDate.setDate(adjustedDate.getDate() + 1);
-      const formattedDate = adjustedDate.toISOString().split('T')[0];
+    // Reset today selected state when date changes
+    if (selectedDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       
-      fetch(`/api/appointments/times?date=${formattedDate}`)
-        .then(res => res.json())
-        .then(bookedTimes => {
-          const available = timeSlots.filter(time => !bookedTimes.includes(time));
-          setAvailableTimes(available);
-        })
-        .catch(error => {
-          console.error('Error fetching booked times:', error);
-        });
+      const selectedDateObj = new Date(selectedDate);
+      
+      const isToday = selectedDateObj.getDate() === today.getDate() && 
+                      selectedDateObj.getMonth() === today.getMonth() && 
+                      selectedDateObj.getFullYear() === today.getFullYear();
+      
+      setIsTodaySelected(isToday);
+
+      // Handle login check
+      if (!isToday && !user) {
+        setShowLoginPopup(true);
+        return;
+      }
+
+      // Fetch available times for non-today dates when user is logged in
+      if (!isToday && user) {
+        const adjustedDate = new Date(selectedDate);
+        adjustedDate.setDate(adjustedDate.getDate() + 1);
+        const formattedDate = adjustedDate.toISOString().split('T')[0];
+        
+        fetch(`/api/appointments/times?date=${formattedDate}`)
+          .then(res => res.json())
+          .then(bookedTimes => {
+            const available = timeSlots.filter(time => !bookedTimes.includes(time));
+            setAvailableTimes(available);
+          })
+          .catch(error => {
+            console.error('Error fetching booked times:', error);
+          });
+      }
+    } else {
+      setIsTodaySelected(false);
     }
   }, [selectedDate, user]);
 
@@ -132,7 +151,13 @@ export default function BookingComponent({ selectedDate }) {
         />
       )}
 
-      {!user ? (
+      {isTodaySelected ? (
+        <div className="today-message">
+          <p>Lai veiktu rezervāciju šodienai, lūdzu, sazinieties ar mums pa tālruni:</p>
+          <p className="phone">+371 2812 3456</p>
+          <p>Ja nepieciešama steidzama apkope, mēs centīsimies jums palīdzēt pēc iespējas ātrāk.</p>
+        </div>
+      ) : !user ? (
         <div className="booking-login-prompt">
           <p>Lūdzu piesakieties, lai veiktu rezervāciju</p>
         </div>
